@@ -7,11 +7,13 @@ class Mail {
 	
 	// sends mail regarding given parameters
 	public static function sendMail($recipient, $subject, $messge, $sender) {
-		$headers  = "MIME-Version: 1.0\r\n";
-		$headers .= "Content-type: text/html; charset=utf-8\r\n";
-		$headers .= "From: " . strip_tags($sender) . "\r\n";
-		
-		return mail($recipient, $subject, $messge, $headers);
+		if ($recipient) {
+			$headers  = "MIME-Version: 1.0\r\n";
+			$headers .= "Content-type: text/html; charset=utf-8\r\n";
+			$headers .= "From: " . strip_tags($sender) . "\r\n";
+			
+			return mail($recipient, $subject, $messge, $headers);
+		}
 	}
 	
 	// sends all DW specific mails in given alertMails object
