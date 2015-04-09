@@ -7,6 +7,7 @@ function date_operating_system_timezone_set() {
 		, '0' => 'Europe/London'
 		, '1' => 'Europe/London'
 		, 'GMT Standard Time' => 'Europe/London'
+		, 'CEST' => 'Europe/Berlin'
 		, '2' => 'Europe/Berlin'
 		, 'W. Europe Standard Time' => 'Europe/Berlin'
 	);
@@ -19,6 +20,7 @@ function date_operating_system_timezone_set() {
 		case 'WINNT':
 			$timezone = exec('tzutil /g');
 			break;
+		case 'LINUX':
 		case 'MACOS':
 			$timezone = exec('date +%Z');
 			break;
