@@ -13,7 +13,7 @@ function date_operating_system_timezone_set() {
 	
 	switch (PHP_OS){
 		default:
-			throw("Can'T handle OS: " . PHP_OS);
+			throw new Exception("Can'T handle OS: " . PHP_OS);
 			break;
 		case 'WIN':
 		case 'WINNT':
