@@ -20,7 +20,7 @@ function date_operating_system_timezone_set() {
 		case 'WINNT':
 			$timezone = exec('tzutil /g');
 			break;
-		case 'LINUX':
+		case 'Linux':
 		case 'MACOS':
 			$timezone = exec('date +%Z');
 			break;
