@@ -170,6 +170,45 @@ class ResourceFileHandler {
 		return null;
 	}
 	
+	// function which investigates weather it is a resource file or not
+	public function isResourceFile($filepath){
+		$ending = pathinfo($filepath, PATHINFO_EXTENSION);
+		
+		if ($ending != 'properties') return false; // only property files can be resource files
+		
+		switch ($this->environment){
+			case 'demandware':
+				if (strpos($filepath, 'templates') == -1 || strpos($filepath, 'resources') == -1) return false; // only take demandware resource files, that are located in a templates / resources folder
+				break;
+		}
+		
+		return true;
+	}
+	
+	// returns an asoc array in the format 'rootfolder', 'locale', 'namespace'
+	// locale must be default, if not defined
+	// namespace is usually the filename without locale
+	public function getResourceFileProperties($cleanpath){
+		$nsChunks = explode('/', $cleanpath);
+		
+		// get the namespace
+		$ns = $nsChunks[count($nsChunks) - 1];
+		
+		// checkout, weather it is a localised one
+		$oc = explode ('_', $ns, 2);
+		$locale = (count($oc) < 2) ? 'default' : $oc[1];
+		$namespace = $oc[0];
+		
+		// get the rootfolder
+		$rootfolder = ($nsChunks[0]) ? $nsChunks[0] : $nsChunks[1];
+		
+		return array(
+			  'rootfolder' => $rootfolder
+			, 'locale' => $locale
+			, 'namespace' => $namespace
+		);
+	}
+	
 	/* -------------------------
 	 * Function that is actualy building up the keyfile Called by the outside
 	 *
@@ -178,36 +217,17 @@ class ResourceFileHandler {
 		
 		$fileparts = explode('.', $filepath);
 		
-		$ending = pathinfo($filepath, PATHINFO_EXTENSION);
-		
-		if ($ending == 'properties') {
-			
-			$cleanpath = substr($filepath, strlen($baseDirectory), -11); // remove .properties from the pathname and only take the relative path into account
-			$nsChunks = explode('/', $cleanpath);
-			
-			switch ($this->environment){
-				case 'demandware':
-					if ( ! (in_array('resources', $nsChunks) && in_array('templates', $nsChunks))) return false; // only take demandware resource files, that are located in a templates / resources folder
-					break;
-				case 'openCMS':
-					
-					break;
-			}
-			
-			// get the namespace
-			$ns = $nsChunks[count($nsChunks) - 1];
-			
-			// checkout, weather it is a localised one
-			$oc = explode ('_', $ns, 2);
-			$locale = (count($oc) < 2) ? 'default' : $oc[1];
-			$namespace = $oc[0];
-			
-			// get the rootfolder
-			$rootfolder = ($nsChunks[0]) ? $nsChunks[0] : $nsChunks[1];
-			
+		if ( $this->isResourceFile($filepath) ) {
 			$info = pathinfo($filepath);
+			$cleanpath = substr($filepath, strlen($baseDirectory), -( strlen($info['extension']) + 1 )); // remove eg. .properties from the pathname and only take the relative path into account
+			
+			$rfProperties = $this->getResourceFileProperties($cleanpath);
 			
 			$baseInfoEntry = array('file' => $filepath, 'filename' =>  $info['basename']);
+			
+			$namespace = $rfProperties['namespace'];
+			$rootfolder = $rfProperties['rootfolder'];
+			$locale = $rfProperties['locale'];
 			
 			if ($locale == 'default') {
 				$baseInfoEntry['rootfolder'] = $rootfolder;
@@ -226,7 +246,6 @@ class ResourceFileHandler {
 				}
 				
 			}
-			
 			
 			$this->io->cmd_print('> ('.$this->resourceFileParsingMode.') found '.str_replace($baseDirectory,'.', $filepath));
 			
@@ -294,6 +313,21 @@ class ResourceFileHandler {
 		}
 	}
 	
+	// returns an array or null
+	protected function getResourceKeyValueFromLine($line) {
+		
+		$parts = explode('=', $line, 2);
+		if (count($parts) >= 2 && strrpos( $parts[0], '#') === false) { // only if '=' was found and '#' not
+			// add key namespace to namespaceMap
+			$key = trim($parts[0]);
+			$value = trim($parts[1]);
+			
+			return array('key' => $key, 'value' => $value);
+		} 
+		
+		return null;
+	}
+	
 	/**
 	 * Called by other functions like importResourceFile or parseValues
 	 * Does the actual parsing of the resource file
@@ -306,11 +340,12 @@ class ResourceFileHandler {
 			
 		$l = 1; // linecounter
 		while($line = fgets($fp, 1024)){
-			$parts = explode('=', $line, 2);
-			if (count($parts) >= 2 && strrpos( $parts[0], '#') === false) { // only if '=' was found and '#' not
-				// add key namespace to namespaceMap
-				$key = trim($parts[0]);
-				$value = trim($parts[1]);
+			
+			$keyVal = $this->getResourceKeyValueFromLine($line);
+			
+			if ($keyVal) {
+				$key = $keyVal['key'];
+				$value = $keyVal['value'];
 				
 				$ns = explode('.', $key);
 				if (!array_key_exists($ns[0], $this->namespaceMap)) {
@@ -319,6 +354,7 @@ class ResourceFileHandler {
 				
 				// add message to key
 				if ($this->parsingModeIs('keys')) {
+					
 					$this->localisationMap[$namespace][$rootfolder][$locale]['keys'][$key] = $value;
 					
 					$keyMapEntry = array('count' => 0, 'files' => array(), 'cartridges' => array($rootfolder));
@@ -449,6 +485,11 @@ class ResourceFileHandler {
 		return $this->getFileValue($value);
 	}
 	
+	// returns a resource file path
+	function getResourceFileName($namespace, $locale, $defaultPath) {
+		return str_replace($namespace, $namespace . '_' . $locale, $defaultPath);
+	}
+	
 	// Will add or change a key for a certain value
 	// this is the MAIN function to add or update new key value pairs to the resource files
 	function setKeyForFile($namespace, $key, $value, $rootfolder, $locale = 'default', $before = '', $after = ''){
@@ -457,7 +498,8 @@ class ResourceFileHandler {
 		
 			if ( !array_key_exists($locale, $this->localisationMap[$namespace][$rootfolder])) {
 				$this->getLocalisationMapEntry($namespace, $rootfolder, $locale);
-				$this->localisationMap[$namespace][$rootfolder][$locale]['path'] = str_replace($namespace, $namespace . '_' . $locale, $this->localisationMap[$namespace][$rootfolder]['default']['path']);
+				// here we create the new file name - it is environment specific, so the called function might be overwritten
+				$this->localisationMap[$namespace][$rootfolder][$locale]['path'] = $this->getResourceFileName($namespace, $locale, $this->localisationMap[$namespace][$rootfolder]['default']['path']);
 				$this->localisationMap[$namespace][$rootfolder][$locale]['imported'] = true;
 			}
 			
@@ -968,6 +1010,38 @@ class ResourceFileHandler {
 	}
 	
 	
+	// print a resource file
+	protected function printResourceFile($ns, $rootfolder, $locale){
+		
+		$subTree = $this->localisationMap[$ns][$rootfolder][$locale];
+		
+		$oldKey = null;
+		foreach ($subTree['keys'] as $key => $value) {
+			$keyparts = explode('.', $key);
+			$testKey = (count($keyparts) > 2) ? $keyparts[1] : $keyparts[0];
+			
+			if($oldKey == null){
+				$oldKey = $testKey;
+			} else if ($oldKey != $testKey){ // add a break between differnet blocks of keys
+				$this->io->cmd_print('');
+				$oldKey = $testKey;
+			}
+			
+			switch($this->environment){
+				default:
+					$line = $key.'='.$value;
+					break;
+				case 'openCMS':
+					$line = $key.'='. substr(json_encode($value), 1, -1);
+					break;
+			}
+			
+			
+			$this->io->cmd_print($line);
+		}
+	}
+	
+	// only print the changed files
 	function printChangedResourceFiles($onlyToScreen = false){
 		
 		$changed = false;
@@ -975,40 +1049,17 @@ class ResourceFileHandler {
 		foreach ($this->changedNamespaces as $ns => $path) {
 			foreach ($path as $rootfolder => $locales) {
 				foreach ($locales as $locale => $fileadd) {
-					
 					ksort($this->localisationMap[$ns][$rootfolder][$locale]['keys']);
 					$changed = true;
-					$filename = $ns.$fileadd.".properties";
+					
+					$filename = pathinfo($this->localisationMap[$ns][$rootfolder][$locale]['path'], PATHINFO_BASENAME);
 					$this->io->cmd_print(">" . (($onlyToScreen) ? '' : 'writing') ." $filename ($rootfolder)", true, 1);
 					
-					$this->io->setWriteMode('screen & file', $this->localisationMap[$ns][$rootfolder][$locale]['path']);
+					$this->io->setWriteMode( $onlyToScreen ? 'screen' : 'screen & file', $this->localisationMap[$ns][$rootfolder][$locale]['path']);
 					
-					$oldKey = null;
-					foreach ($this->localisationMap[$ns][$rootfolder][$locale]['keys'] as $key => $value) {
-						$keyparts = explode('.', $key);
-						$testKey = (count($keyparts) > 2) ? $keyparts[1] : $keyparts[0];
-						
-						if($oldKey == null){
-							$oldKey = $testKey;
-						} else if ($oldKey != $testKey){ // add a break between differnet blocks of keys
-							$this->io->cmd_print('');
-							$oldKey = $testKey;
-						}
-						
-						switch($this->environment){
-							default:
-								$line = $key.'='.$value;
-								break;
-							case 'openCMS':
-								$line = $key.'='. substr(json_encode($value), 1, -1);
-								break;
-						}
-						
-						
-						$this->io->cmd_print($line);
-					}
+					$this->printResourceFile($ns, $rootfolder, $locale);
 					
-					if (! $onlyToScreen) $this->io->setWriteMode('screen'); 
+					if (! $onlyToScreen) $this->io->setWriteMode('screen');
 				}
 			}
 		}

@@ -2,20 +2,13 @@
 
 require_once(str_replace('//','/',dirname(__FILE__).'/') .'../FileTranslator.php');
 /**
- *	You can define and control the handling of the translate by a file called translation.config in the project root
- *	Here is a exsample content: 
+ *	You can define and control the handling of the translate by a file called .translation.config in the project root
+ *	Here is a example content: 
  *
  *	ignore_files: om.xml,mani.isml // (optional)
  *	cartridgepath: app_quiksilver,napali_ui,napali_core,..// (required for now) define the cartridgeorder as defined in the site preference file: csv
  *
  *	prefered_propertie_locations: napali_ui,int_bazaarvoice // (sort of required) defines where new resource keys should be added
- *
- *
- *
- *
- *
- *
- *
  *
  */
 class DemandwareFileTranslator extends FileTranslator {
