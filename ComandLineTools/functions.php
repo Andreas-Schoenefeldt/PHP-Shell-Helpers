@@ -10,6 +10,9 @@ function date_operating_system_timezone_set() {
 		, 'CEST' => 'Europe/Berlin'
 		, '2' => 'Europe/Berlin'
 		, 'W. Europe Standard Time' => 'Europe/Berlin'
+		, 'CET' => 'Europe/Berlin'
+		, 'Eastern Standard Time' => 'America/New_York'
+		, 'Pacific Standard Time' => 'America/Los_Angeles'
 	);
 	
 	switch (PHP_OS){
@@ -30,7 +33,7 @@ function date_operating_system_timezone_set() {
 		echo("> timezone identified as " . $timezones[$timezone] . "\n");
 		date_default_timezone_set($timezones[$timezone]);
 	} else {
-		die("Unknown Timezone: " . $timezone);
+		die("Unknown Timezone: " . $timezone . "\n");
 	}
 }
 
