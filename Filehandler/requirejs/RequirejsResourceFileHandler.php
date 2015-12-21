@@ -2,20 +2,25 @@
 
 require_once(str_replace('//','/',dirname(__FILE__).'/') .'../ResourceFileHandler.php');
 
-class ZendResourceFileHandler extends ResourceFileHandler {
+class RequirejsResourceFileHandler extends ResourceFileHandler {
 	
 	var $defaultLocale = 'en';
 	
 	// checks against zend lang files
 	public function isResourceFile($filepath){
-		preg_match("/languages\\/lang\.\w*?\.php/", $filepath, $matches);
+		// d($filepath);
+		preg_match("/nls\\/\w*?\\/\w*?\.js/", $filepath, $matches);
+		// d(count($matches) > 0);
 		return count($matches) > 0;
 	}
 	
 	// returns a resource file path
 	function getResourceFileName($namespace, $locale, $defaultPath) {
 		$info = pathinfo($defaultPath);
-		return $info['dirname'] . '/' . $namespace . '.' . $locale . '.' . $info['extension'];
+		
+		$locale = $locale == 'default' ? 'root' : $locale; // require js holds the default in the folder root
+		
+		return $info['dirname'] . '/' . $locale . '/' . $namespace . '.' . $info['extension'];
 	}
 	
 	// returns an asoc array in the format 'rootfolder', 'locale', 'namespace'
@@ -29,7 +34,8 @@ class ZendResourceFileHandler extends ResourceFileHandler {
 		$fileName = $nsChunks[count($nsChunks) - 1];
 		
 		$parts = explode('.', $fileName, 2);
-		$locale = $parts[1] == $this->defaultLocale ? 'default' : $parts[1]; // we need a default language
+		$locale = $nsChunks[count($nsChunks) - 2];
+		$locale = $locale == 'root' ? 'default' : $locale;
 		$namespace = $parts[0];
 		
 		// get the rootfolder
@@ -45,7 +51,11 @@ class ZendResourceFileHandler extends ResourceFileHandler {
 	// returns an array or null
 	protected function getResourceKeyValueFromLine($line) {
 		
-		$parts = explode('=>', $line, 2); // this is a bit unsecure but straight foreward. It needs to be a proper parsing, when we run itno issues.
+		$cleanLine = explode('//', $line, 2); // removing the comments
+		$comment = count($cleanLine) > 1 ? $cleanLine[1] : ''; 
+		$line = $cleanLine[0];
+		
+		$parts = explode(':', $line, 2); // this is a bit unsecure but straight foreward. It needs to be a proper parsing, when we run itno issues.
 		if (count($parts) >= 2) {
 			// add key namespace to namespaceMap
 			preg_match("/^[, \t]*?['\"](.*?)['\"]\s*?$/", $parts[0], $matches);			
@@ -54,7 +64,7 @@ class ZendResourceFileHandler extends ResourceFileHandler {
 			preg_match("/^\s*?(['\"])(.*?)['\"]\s*?,?\s*?$/", $parts[1], $matches);
 			$value = str_replace('\\' . $matches[1], $matches[1], $matches[2]);
 		
-			return array('key' => $key, 'value' => $value);
+			return array('key' => $key, 'value' => $value, 'comment' => $comment);
 		} 
 		
 		return null;
@@ -66,13 +76,13 @@ class ZendResourceFileHandler extends ResourceFileHandler {
 		$subTree = $this->localisationMap[$ns][$rootfolder][$locale];
 		
 		// print the start of the file;
-		$this->io->cmd_print('<?php');
 		$this->io->cmd_print('// generated at ' . date('d.m.Y H:i:s') . ' via resource file utility script');
 		$this->io->cmd_print('// format: ' . $this->environment);
 		$this->io->cmd_print('');
-		$this->io->cmd_print('return array(');
+		$this->io->cmd_print('define({');
 		
 		$oldKey = null;
+		$first = true;
 		foreach ($subTree['keys'] as $key => $value) {
 			$testKey = strtoupper(substr($key,0,1));
 			
@@ -92,14 +102,16 @@ class ZendResourceFileHandler extends ResourceFileHandler {
 					// we escape the string again for printing
 					$value = str_replace("'", "\\'", $value);
 				
-					$line = "\t'" . $key."' => '" . $value . "',";
+					$line = "\t" . ($first ? ', ' : '') .  "'" . $key."' : '" . $value . "'";
+					
+					if($first) $first = false;
 					break;
 			}
 			
 			$this->io->cmd_print($line);
 		}
 		
-		$this->io->cmd_print(');');
+		$this->io->cmd_print('});');
 	}
 }
 

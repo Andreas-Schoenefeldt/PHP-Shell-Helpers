@@ -78,8 +78,8 @@ class CmdParameterReader {
 	
 	function parseParameters($parameters){
 		for ($i = 1; $i < count($parameters); $i++) {
-			$param = $parameters[$i];
-			
+			$param = trim($parameters[$i]);
+            
 			if (  substr($param, 0, 1) == '-') { // found a additional parameter
 				
 				$parts = explode('-', $param, 2);

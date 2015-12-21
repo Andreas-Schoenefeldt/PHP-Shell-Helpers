@@ -24,6 +24,7 @@ function date_operating_system_timezone_set() {
 			$timezone = exec('tzutil /g');
 			break;
 		case 'Linux':
+        case 'Darwin': // OS X El'Captain
 		case 'MACOS':
 			$timezone = exec('date +%Z');
 			break;

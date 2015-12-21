@@ -56,7 +56,7 @@ class GitWrapper extends CodeControlWrapper {
 	function checkout($sources, $branch) {
 		
 		$command = 'git checkout ';
-		
+        
 		if (count($sources) == 0) {
 			if ($branch) $command .= '-b ' . $branch;
 		} else {
