@@ -23,7 +23,7 @@ class CodeControlWrapper {
 	}
 	
 	function execute($command) {
-		$this->io->out($command);
+		$this->io->out(' | ' . $command);
 		$lastline = system($command, $retval);
 		return $retval;
 	}
