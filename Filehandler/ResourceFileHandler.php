@@ -178,7 +178,7 @@ class ResourceFileHandler {
 		
 		switch ($this->environment){
 			case 'demandware':
-				if (strpos($filepath, 'templates') == -1 || strpos($filepath, 'resources') == -1) return false; // only take demandware resource files, that are located in a templates / resources folder
+				if (! strpos($filepath, '/templates/resources/')) return false; // only take demandware resource files, that are located in a templates / resources folder
 				break;
 		}
 		
