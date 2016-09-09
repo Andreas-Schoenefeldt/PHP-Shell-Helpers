@@ -10,6 +10,14 @@
 		function __construct()  {
 		}
 		
+		function confirm($message = 'please confirm to continue') {
+			if (strtolower($this->read($message . ' (y/N)')) == 'y'){
+				return true;
+			}
+			
+			return false;
+		}
+		
 		function wait($message = 'press enter to continue') { return $this->readStdInn($message);}
 		function read($message = 'press enter to continue') { return $this->readStdInn($message);}
 		function readStdInn($message = 'press enter to continue'){

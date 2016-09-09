@@ -7,12 +7,16 @@ function date_operating_system_timezone_set() {
 		, '0' => 'Europe/London'
 		, '1' => 'Europe/London'
 		, 'GMT Standard Time' => 'Europe/London'
+		, 'BST' => 'Europe/London'
 		, 'CEST' => 'Europe/Berlin'
 		, '2' => 'Europe/Berlin'
 		, 'W. Europe Standard Time' => 'Europe/Berlin'
 		, 'CET' => 'Europe/Berlin'
 		, 'Eastern Standard Time' => 'America/New_York'
+		, 'CDT' => 'America/Chicago'
 		, 'Pacific Standard Time' => 'America/Los_Angeles'
+		, 'MDT' => 'America/Denver'
+		, 'MST' => 'America/Phoenix'
 	);
 	
 	switch (PHP_OS){

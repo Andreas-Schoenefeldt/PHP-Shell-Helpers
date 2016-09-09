@@ -53,6 +53,25 @@ class GitWrapper extends CodeControlWrapper {
 		}
 	}
 	
+	function release($ident, $message) {
+		$this->io->out("\n> Exisiting Releases:");		
+		$this->execute('git tag');
+		$this->io->out("");
+		
+		$this->status();
+		
+		if ($this->io->confirm('Are you sure you want to create the tag ' . $ident . '? All uncommitted files will be committed if needed.')){
+			$this->commit($message, true);
+			
+			$this->execute('git tag -a ' . $ident . ' -m "' . $message . '"');
+			
+			$this->execute('git push origin ' . $ident);
+			
+			$this->io->out("\n> Release $ident was created and pushed to the server");
+		}
+		$this->io->out("");
+	}
+	
 	function checkout($sources, $branch) {
 		
 		$command = 'git checkout ';

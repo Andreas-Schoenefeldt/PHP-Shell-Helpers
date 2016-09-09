@@ -66,6 +66,10 @@ class CodeControlWrapper {
 		throw new Exception('Not Implemented');
 	}
 	
+	function release($ident, $message) {
+		throw new Exception('Not Implemented');
+	}
+	
 	function add($files){
 		throw new Exception('Not Implemented');
 	}
