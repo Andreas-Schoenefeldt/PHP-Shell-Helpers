@@ -14,7 +14,7 @@ $globalIgnoreFiles = array('.svn' => true, '.git' => true, '.DS_Store' => true, 
  * @param string $dir The directory to traverse.
  * @param string $pattern The file pattern to call the function for. Leave as NULL to match all pattern.
  * @param bool $recursive Whether to list subfolders as well.
- * @param string $callback The function to call. It must accept one argument that is a relative filepath of the file.
+ * @param string $callback The function to call. It must accept one argument that is a absolute filepath of the file.
  */
 function forEachFile($dir, $pattern = null, $recursive = false, $callback) {
 	

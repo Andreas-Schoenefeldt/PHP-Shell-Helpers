@@ -3,7 +3,8 @@
 function date_operating_system_timezone_set() {
 	
 	$timezones = array(
-		  'GMT' => 'Europe/London'
+          'IST' => 'Europe/Dublin'
+        , 'GMT' => 'Europe/London'
 		, '0' => 'Europe/London'
 		, '1' => 'Europe/London'
 		, 'GMT Standard Time' => 'Europe/London'
@@ -12,6 +13,8 @@ function date_operating_system_timezone_set() {
 		, '2' => 'Europe/Berlin'
 		, 'W. Europe Standard Time' => 'Europe/Berlin'
 		, 'CET' => 'Europe/Berlin'
+		, 'EET' => 'Europe/Athens'
+        , 'IDT' => 'Asia/Jerusalem' // israel day time
 		, 'Eastern Standard Time' => 'America/New_York'
 		, 'CDT' => 'America/Chicago'
 		, 'Pacific Standard Time' => 'America/Los_Angeles'

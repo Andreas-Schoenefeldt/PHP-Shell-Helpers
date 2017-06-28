@@ -66,6 +66,10 @@ class CodeControlWrapper {
 		throw new Exception('Not Implemented');
 	}
 	
+	function feature($name) {
+		throw new Exception('Not Implemented');
+	}
+	
 	function release($ident, $message) {
 		throw new Exception('Not Implemented');
 	}

@@ -53,6 +53,10 @@ class GitWrapper extends CodeControlWrapper {
 		}
 	}
 	
+	function feature($name) {
+		$this->checkout(array(), 'feature/' . $name);
+	}
+	
 	function release($ident, $message) {
 		$this->io->out("\n> Exisiting Releases:");		
 		$this->execute('git tag');

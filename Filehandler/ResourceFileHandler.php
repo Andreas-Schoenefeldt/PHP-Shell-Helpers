@@ -490,6 +490,37 @@ class ResourceFileHandler {
 		return str_replace($namespace, $namespace . '_' . $locale, $defaultPath);
 	}
 	
+	// removes a specific key from all 
+	function removeKeyForAll($namespace, $key) {
+		foreach($this->localisationMap[$namespace] as $rootfolder => $conf) {
+			foreach($conf as $locale => $key_conf) {
+				if (array_key_exists($key, $key_conf['keys'])) {
+					$this->removeKeyForFile($namespace, $key, $rootfolder, $locale);
+				}
+			}
+		}
+		
+		// remove also from keymap
+		if (array_key_exists($key, $this->keyMap)) unset($this->keyMap[$key]);
+	}
+	
+	// removes a key
+	function removeKeyForFile($namespace, $key, $rootfolder, $locale = 'default'){
+		if($rootfolder) {
+			
+			if (array_key_exists($key, $this->localisationMap[$namespace][$rootfolder][$locale]['keys'])){
+				unset($this->localisationMap[$namespace][$rootfolder][$locale]['keys'][$key]);
+				
+				$val = ($locale == 'default') ? '' : '_' . $locale;
+				$this->changedNamespaces[$namespace][$rootfolder][$locale] = $val;
+			}
+			
+		} else {
+			$this->io->error('Could not find rootfolder for key ' .  $key);
+		}
+	}
+	
+	
 	// Will add or change a key for a certain value
 	// this is the MAIN function to add or update new key value pairs to the resource files
 	function setKeyForFile($namespace, $key, $value, $rootfolder, $locale = 'default', $before = '', $after = ''){
@@ -1049,17 +1080,23 @@ class ResourceFileHandler {
 		foreach ($this->changedNamespaces as $ns => $path) {
 			foreach ($path as $rootfolder => $locales) {
 				foreach ($locales as $locale => $fileadd) {
-					ksort($this->localisationMap[$ns][$rootfolder][$locale]['keys']);
+					ksort($this->localisationMap[$ns][$rootfolder][$locale]['keys'], SORT_STRING | SORT_FLAG_CASE);
 					$changed = true;
 					
-					$filename = pathinfo($this->localisationMap[$ns][$rootfolder][$locale]['path'], PATHINFO_BASENAME);
-					$this->io->cmd_print(">" . (($onlyToScreen) ? '' : 'writing') ." $filename ($rootfolder)", true, 1);
+					if (count($this->localisationMap[$ns][$rootfolder][$locale]['keys'])){
 					
-					$this->io->setWriteMode( $onlyToScreen ? 'screen' : 'screen & file', $this->localisationMap[$ns][$rootfolder][$locale]['path']);
-					
-					$this->printResourceFile($ns, $rootfolder, $locale);
-					
-					if (! $onlyToScreen) $this->io->setWriteMode('screen');
+						$filename = pathinfo($this->localisationMap[$ns][$rootfolder][$locale]['path'], PATHINFO_BASENAME);
+						$this->io->cmd_print(">" . (($onlyToScreen) ? '' : 'writing') ." $filename ($rootfolder)", true, 1);
+
+						$this->io->setWriteMode( $onlyToScreen ? 'screen' : 'screen & file', $this->localisationMap[$ns][$rootfolder][$locale]['path']);
+
+						$this->printResourceFile($ns, $rootfolder, $locale);
+
+						if (! $onlyToScreen) $this->io->setWriteMode('screen');
+					} else {
+						$this->io->cmd_print("> removing $filename ($rootfolder)", true, 1);
+						if (! $onlyToScreen) unlink($this->localisationMap[$ns][$rootfolder][$locale]['path']);
+					}
 				}
 			}
 		}
