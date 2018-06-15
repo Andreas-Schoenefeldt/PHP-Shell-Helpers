@@ -14,14 +14,20 @@ function date_operating_system_timezone_set() {
 		, 'W. Europe Standard Time' => 'Europe/Berlin'
 		, 'CET' => 'Europe/Berlin'
 		, 'EET' => 'Europe/Athens'
+        , 'EEST' => 'Europe/Kiev'
         , 'IDT' => 'Asia/Jerusalem' // israel day time
+        , 'MSK' => 'Europe/Moscow' // Moscow Standard Time
+        , 'KRAT' => 'Asia/Krasnoyarsk'
+        , '+07' => 'Asia/Krasnoyarsk'
+        , 'IRKT' => 'Asia/Irkutsk'
+        , 'VLAT' => 'Asia/Vladivostok'
 		, 'Eastern Standard Time' => 'America/New_York'
 		, 'CDT' => 'America/Chicago'
 		, 'Pacific Standard Time' => 'America/Los_Angeles'
 		, 'MDT' => 'America/Denver'
 		, 'MST' => 'America/Phoenix'
 	);
-	
+    
 	switch (PHP_OS){
 		default:
 			throw new Exception("Can'T handle OS: " . PHP_OS);
@@ -31,7 +37,7 @@ function date_operating_system_timezone_set() {
 			$timezone = exec('tzutil /g');
 			break;
 		case 'Linux':
-        case 'Darwin': // OS X El'Captain
+        case 'Darwin': // OS X El'Captain+
 		case 'MACOS':
 			$timezone = exec('date +%Z');
 			break;
