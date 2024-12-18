@@ -28,7 +28,7 @@ require_once(str_replace('//','/',dirname(__FILE__).'/') .'../Debug/libDebug.php
  * ----------------------------------------------------------------------- */
 class CmdParameterReader {
 	var $io;
-	var $scriptNames = null; 
+	var $scriptName = null; 
 	var $fileNames = array(); // Script can work on a list by default
 	var $scriptDescription;
 	

@@ -16,7 +16,7 @@ $globalIgnoreFiles = array('.svn' => true, '.git' => true, '.DS_Store' => true, 
  * @param bool $recursive Whether to list subfolders as well.
  * @param string $callback The function to call. It must accept one argument that is a absolute filepath of the file.
  */
-function forEachFile($dir, $pattern = null, $recursive = false, $callback) {
+function forEachFile(string $dir, string $pattern, bool $recursive, $callback) {
 	
 	if ( substr($dir, -1, 1) != DIRECTORY_SEPARATOR ) $dir = $dir . DIRECTORY_SEPARATOR;
 	

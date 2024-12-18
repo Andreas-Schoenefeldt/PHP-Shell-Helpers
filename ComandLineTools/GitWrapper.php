@@ -18,7 +18,7 @@ class GitWrapper extends CodeControlWrapper {
 	}
 	
 	function update(){
-		$this->execute('git pull');
+		return $this->execute('git pull');
 	}
 	
 	function version(){
@@ -26,30 +26,30 @@ class GitWrapper extends CodeControlWrapper {
 	}
 	
 	function commit($message, $addAll, $files = array()){
-		$this->io->out("\n> Status of the commit:");		
-		// add will print a status afterwards
-		if (! $addAll) {
-			if (count($files)) $this->add($files);
-		} else {
-			$this->add(array());
-		}
+		$this->io->out("\n> Updating Repository...");
+		if( $this->update() == 0 ) {
+			$this->io->out("\n> Status of the commit:");		
+			// add will print a status afterwards
+			if (! $addAll) {
+				if (count($files)) $this->add($files);
+			} else {
+				$this->add(array());
+			}
 		
-		$command = 'git commit -m "' . $message . '"';
+			$command = 'git commit -m "' . $message . '"';
 		
-		$this->io->out("\n> Commiting local changes...");
-		if ($this->execute($command) == 0) {
+			$this->io->out("\n> Commiting local changes...");
+			if ($this->execute($command) == 0) {
 			
-			$this->io->out("\n\n> Updating Repository...");
-			$this->update();
+				$this->io->out("\n> Uploading to repository server...");
+				$this->execute('git push');
 			
-			$this->io->out("\n> Uploading to repository server...");
-			$this->execute('git push');
-			
-			parent::commit($message, $addAll);
-			$this->io->out("\n\n> ---------------------------------------");
-			$this->io->out("> Local status:\n");
-			$this->status();
-			$this->io->out("");
+				parent::commit($message, $addAll);
+				$this->io->out("\n\n> ---------------------------------------");
+				$this->io->out("> Local status:\n");
+				$this->status();
+				$this->io->out("");
+			}
 		}
 	}
 	

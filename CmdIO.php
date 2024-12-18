@@ -38,28 +38,28 @@
 		 * ----------------------------------------- */
 		function cmd_print($text = '', $nl = true, $mode = 0){
 			$defLineStart = "> ";
-			$sep = "------------------------------------------------------------------------------\n";
+			$sep = "------------------------------------------------------------------------------\r\n";
 			$line = '';
 			switch ($mode){
 				default:
 					$line = $text;
 					break;
 				case 1:
-					$line = "\n".$sep;
-					$line .= "| ".$text."\n";
+					$line = "\r\n".$sep;
+					$line .= "| ".$text."\r\n";
 					$line .= $sep;
 					break;
 				case 2:
 					$line = $sep;
-					$line .= $defLineStart.$text."\n";
+					$line .= $defLineStart.$text."\r\n";
 					break;
 				case 3:
-					$line = $defLineStart.$text."\n";
+					$line = $defLineStart.$text."\r\n";
 					$line .= $sep;
 					break;
 			}
 			
-			if ($nl) $line .= "\n";
+			if ($nl) $line .= "\r\n";
 			
 			if($this->writeMode < 2 ) {
 				echo $line;

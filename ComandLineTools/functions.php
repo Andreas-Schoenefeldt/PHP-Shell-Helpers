@@ -3,8 +3,7 @@
 function date_operating_system_timezone_set() {
 	
 	$timezones = array(
-          'IST' => 'Europe/Dublin'
-        , 'GMT' => 'Europe/London'
+          'GMT' => 'Europe/London'
 		, '0' => 'Europe/London'
 		, '1' => 'Europe/London'
 		, 'GMT Standard Time' => 'Europe/London'
@@ -17,6 +16,7 @@ function date_operating_system_timezone_set() {
         , 'EEST' => 'Europe/Kiev'
         , 'IDT' => 'Asia/Jerusalem' // israel day time
         , 'MSK' => 'Europe/Moscow' // Moscow Standard Time
+        , 'IST' => 'Asia/Kolkata'
         , 'KRAT' => 'Asia/Krasnoyarsk'
         , '+07' => 'Asia/Krasnoyarsk'
         , 'IRKT' => 'Asia/Irkutsk'
@@ -37,14 +37,21 @@ function date_operating_system_timezone_set() {
 			$timezone = exec('tzutil /g');
 			break;
 		case 'Linux':
+            break;
+            $timezone = exec('date +%Z');
         case 'Darwin': // OS X El'Captain+
 		case 'MACOS':
-			$timezone = exec('date +%Z');
+            $systemZoneName = readlink('/etc/localtime');    
+            $systemZoneName = substr($systemZoneName, strpos($systemZoneName, '/zoneinfo/') + 10);
 			break;
 	}
 	
-	if( array_key_exists($timezone, $timezones)) {		
-		echo("> timezone identified as " . $timezones[$timezone] . "\n");
+    
+    if (isset($systemZoneName)) {
+        echo("> timezone identified as " . $systemZoneName . "\n");
+        date_default_timezone_set($systemZoneName);
+    } else if( array_key_exists($timezone, $timezones)) {		
+		echo("> timezone identified as " . $timezones[$timezone] . " ($timezone)\n");
 		date_default_timezone_set($timezones[$timezone]);
 	} else {
 		die("Unknown Timezone: " . $timezone . "\n");

@@ -1,7 +1,7 @@
 <?php
 
-require_once(str_replace('//','/',dirname(__FILE__).'/') .'../Debug/libDebug.php');
-require_once(str_replace('//','/',dirname(__FILE__).'/') .'../CmdIO.php');
+require_once(str_replace('//','/', __DIR__ .'/') .'../Debug/libDebug.php');
+require_once(str_replace('//','/', __DIR__ .'/') .'../CmdIO.php');
 
 
 /* -----------------------------------------------------------------------
@@ -11,8 +11,8 @@ class CodeControlWrapper {
 	
 	var $io;
 	var $emph_config = array(
-		'token' => '6148lk4g4gk8c0c8wgo0', // jrb52ck0gggsc40sk48k
-		'url' => 'http://time.emphasize.de/util/ajax.php'
+		'token' => 'andreas',
+		'url' => 'https://time2.store.emphasize.de/[token]/githook/'
 	);
 	
 	/* --------------------
@@ -29,10 +29,13 @@ class CodeControlWrapper {
 	}
 	
 	function addComment($message){
-		$time = date('Y-m-d H:i:s');
-		$this->io->out("\n> Adding comment to " . $this->emph_config['url'] . " at " . $time);
-		$data = 'do=addInfo&token=' . $this->emph_config['token'] . '&info=' . urlencode($message) . '&time=' . urlencode($time);
-		$command = 'curl -L "' . $this->emph_config['url'] . '?' . $data . '"';
+		$time = new DateTime();
+		$this->io->out("\n> Adding comment to " . $this->emph_config['url'] . " at " . $time->format('Y-m-d H:i:s'));
+		
+		$url = str_replace('[token]', $this->emph_config['token'], $this->emph_config['url']);
+		
+		$data = [["s" => $time->getTimestamp() * 1000, "i" => $message]];
+		$command = 'curl -d \'' . json_encode($data) . '\' ' . $url;
 		// d($command);
 		$this->execute($command);
 	}
