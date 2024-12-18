@@ -27,7 +27,7 @@ function date_operating_system_timezone_set() {
 		, 'MDT' => 'America/Denver'
 		, 'MST' => 'America/Phoenix'
 	);
-    
+
 	switch (PHP_OS){
 		default:
 			throw new Exception("Can'T handle OS: " . PHP_OS);
@@ -37,8 +37,8 @@ function date_operating_system_timezone_set() {
 			$timezone = exec('tzutil /g');
 			break;
 		case 'Linux':
-            break;
             $timezone = exec('date +%Z');
+            break;
         case 'Darwin': // OS X El'Captain+
 		case 'MACOS':
             $systemZoneName = readlink('/etc/localtime');    
