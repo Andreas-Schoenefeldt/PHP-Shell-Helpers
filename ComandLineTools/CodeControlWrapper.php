@@ -22,8 +22,10 @@ class CodeControlWrapper {
 		$this->io = new CmdIO();
 	}
 	
-	function execute($command) {
-		$this->io->out(' | ' . $command);
+	function execute($command, $hideCommand = false) {
+        if (!$hideCommand) {
+		    $this->io->out(' | ' . $command);
+        }
 		$lastline = system($command, $retval);
 		return $retval;
 	}

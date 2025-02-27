@@ -15,6 +15,8 @@ class GitWrapper extends CodeControlWrapper {
 		$command = 'git status';
 		if ($short) $command .= ' -s';
 		$this->execute($command);
+        $this->io->out('Current Hash (short): ', false);
+        $this->execute('git rev-parse --short HEAD', true);
 	}
 	
 	function update(){
