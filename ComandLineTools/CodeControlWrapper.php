@@ -12,7 +12,7 @@ class CodeControlWrapper {
 	var $io;
 	var $emph_config = array(
 		'token' => 'andreas',
-		'url' => 'https://time2.store.emphasize.de/[token]/githook/'
+		'url' => 'https://time2.store.emphasize.de/?topic=[token]&u=githook'
 	);
 	
 	/* --------------------
