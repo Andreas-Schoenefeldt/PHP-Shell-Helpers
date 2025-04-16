@@ -26,7 +26,7 @@ class CodeControlWrapper {
         if (!$hideCommand) {
 		    $this->io->out(' | ' . $command);
         }
-		$lastline = system($command, $retval);
+		system($command, $retval);
 		return $retval;
 	}
 	
