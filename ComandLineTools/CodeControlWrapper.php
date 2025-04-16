@@ -8,12 +8,12 @@ require_once(str_replace('//','/', __DIR__ .'/') .'../CmdIO.php');
  * A function to Wrapp a CodeControl like git or svn
  * ----------------------------------------------------------------------- */
 class CodeControlWrapper {
-	
-	var $io;
-	var $emph_config = array(
+
+    protected CmdIO $io;
+	protected array $emph_config = [
 		'token' => 'andreas',
 		'url' => 'https://time2.store.emphasize.de/?topic=[token]&u=githook'
-	);
+    ];
 	
 	/* --------------------
 	 * Constructor
