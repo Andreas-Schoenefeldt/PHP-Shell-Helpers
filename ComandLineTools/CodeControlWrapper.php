@@ -37,7 +37,7 @@ class CodeControlWrapper {
 		$url = str_replace('[token]', $this->emph_config['token'], $this->emph_config['url']);
 		
 		$data = [["s" => $time->getTimestamp() * 1000, "i" => $message]];
-		$command = 'curl -d \'' . json_encode($data) . '\' ' . $url;
+		$command = 'curl -d \'' . json_encode($data) . '\' ' . '\'' . $url . '\'';
 		// d($command);
 		$this->execute($command);
 	}
