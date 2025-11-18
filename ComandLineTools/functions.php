@@ -57,5 +57,3 @@ function date_operating_system_timezone_set() {
 		die("Unknown Timezone: " . $timezone . "\n");
 	}
 }
-
-?>

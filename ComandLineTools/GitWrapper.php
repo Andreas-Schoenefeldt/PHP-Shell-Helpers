@@ -9,7 +9,7 @@ require_once(str_replace('//','/',dirname(__FILE__).'/') .'CodeControlWrapper.ph
  * ----------------------------------------------------------------------- */
 class GitWrapper extends CodeControlWrapper {
 	
-	function status($short = false, $branch = false){
+	public function status($short = false, $branch = false){
 		if ($branch) $this->execute('git branch'); // show the brnaches
 		
 		$command = 'git status';
@@ -19,15 +19,16 @@ class GitWrapper extends CodeControlWrapper {
         $this->execute('git rev-parse --short HEAD', true);
 	}
 	
-	function update(){
+	public function update(){
 		return $this->execute('git pull');
 	}
 	
-	function version(){
+	public function version(){
 		$this->execute('git --version');
 	}
-	
-	function commit($message, $addAll, $files = array()){
+
+    public function commit($message, $addAll, $files = array()): void
+    {
 		$this->io->out("\n> Updating Repository...");
 		if( $this->update() == 0 ) {
 			$this->io->out("\n> Status of the commit:");		
@@ -55,11 +56,12 @@ class GitWrapper extends CodeControlWrapper {
 		}
 	}
 	
-	function feature($name) {
+	public function feature($name): void
+    {
 		$this->checkout(array(), 'feature/' . $name);
 	}
-	
-	function release($ident, $message) {
+
+    public function release($ident, $message) {
 		$this->io->out("\n> Exisiting Releases:");		
 		$this->execute('git tag');
 		$this->io->out("");
@@ -77,8 +79,8 @@ class GitWrapper extends CodeControlWrapper {
 		}
 		$this->io->out("");
 	}
-	
-	function checkout($sources, $branch) {
+
+    public function checkout($sources, $branch) {
 		
 		$command = 'git checkout ';
         
@@ -101,8 +103,8 @@ class GitWrapper extends CodeControlWrapper {
 			$this->execute("git pull");
 		}
 	}
-	
-	function add($files){
+
+    public function add($files){
 		if (count($files) == 0) { // add . is default
 			$files[] = '--all'; // the add all command
 		}
@@ -112,24 +114,66 @@ class GitWrapper extends CodeControlWrapper {
 		$this->execute($command);
 		$this->status(true);
 	}
-	
-	function diff(){
+
+    public function diff(){
 		$this->execute('git diff');
 	}
-	
-	function remove($files){
+
+    public function remove($files){
 		$this->execute('git rm -f -r ' . implode(' ', $files));
 	}
-	
-	function merge($branch){
+
+    protected function getRemoteHost(): string {
+        $remoteUrl = $this->shell('git remote get-url origin');
+
+        // Parse the host from the URL
+        // Handle SSH format: git@github.com:user/repo.git
+        if (preg_match('/^git@([^:]+):/', $remoteUrl, $matches)) {
+            return $matches[1];
+        }
+
+        // Handle HTTPS format: https://github.com/user/repo.git
+        if (preg_match('/^https?:\/\/([^\/]+)/', $remoteUrl, $matches)) {
+            return $matches[1];
+        }
+
+        return $remoteUrl; // Return as-is if no pattern matches
+    }
+
+    public function mergeRequest(string $targetBranch): void {
+
+        $currentBranch = $this->shell('git branch --show-current');
+        $parts = explode('/', $currentBranch);
+        $name = array_pop($parts);
+        $systen = $this->getRemoteHost();
+
+        switch ($systen) {
+            case 'github.com':
+
+                if ($this->io->confirm("Create a pull request from $currentBranch to $targetBranch?")) {
+                    $res = $this->shell("gh pr create --base $targetBranch --head $currentBranch --title \"$name\" --body=\"\"");
+
+                    if (str_starts_with($res, 'http')) {
+                        $this->io->out("Pull request created successfully: $res/files");
+                    } else {
+                        $this->io->out($res);
+                    }
+                }
+                break;
+            default:
+                throw new RuntimeException("no handler for $systen jet.");
+        }
+    }
+
+    public function merge($branch){
 		$this->update();
 		if ($this->execute('git merge ' . $branch) == 0) {
 			// uploading to remote repository
 			$this->execute('git push');
 		}
 	}
-	
-	function log($filters) {
+
+    public function log($filters) {
 		$this->execute('git log --pretty=format:"%h %cn %cr: %s" -60');
 		echo ("\n");
 	}

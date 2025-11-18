@@ -1,0 +1,37 @@
+meta {
+  name: Bitpucket PR
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://api.bitbucket.org/2.0/repositories/{{WORKSPACE}}/{{REPOSITORY}}/pullrequests
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "ADPM-295",
+    "description": "Flow tweaks for an edge case",
+    "source": {
+      "branch": {
+        "name": "feature/ADPM-295-flow-tweak"
+      }
+    },
+    "destination": {
+      "branch": {
+        "name": "release/25.12.1"
+      }
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

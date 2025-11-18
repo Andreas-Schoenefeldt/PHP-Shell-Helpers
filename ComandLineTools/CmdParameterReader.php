@@ -50,7 +50,7 @@ class CmdParameterReader {
 		
 		// parse the parameters
 		
-		$this->parseParameters($parameters);
+		$this->parseParameters($parameters, $allowed);
 		
 		
 		// check, if all required parameters are set
@@ -76,7 +76,7 @@ class CmdParameterReader {
 		}
 	}
 	
-	function parseParameters($parameters){
+	function parseParameters($parameters, $allowed){
 		for ($i = 1; $i < count($parameters); $i++) {
 			$param = trim($parameters[$i]);
             
@@ -104,12 +104,12 @@ class CmdParameterReader {
 						break;
 					case 'String':
 						// try the second
-						if($parameters[$i + 1] && substr($parameters[$i + 1], 0, 1) != '-') {
+						if(($parameters[$i + 1] ?? false) && substr($parameters[$i + 1], 0, 1) != '-') {
 							$val = 	$parameters[$i + 1];
 							// do not check this parameter again
 							$i++;
 						} else { // if only the parameter is given
-							$val = '';
+							$val = $allowed[$name]['default'] ?? '';
 						}
 						break;
 					case 'List':
@@ -171,7 +171,7 @@ class CmdParameterReader {
 				$this->names[$values['name']] = $key;
 			}
 			
-			if (array_key_exists('default', $values)) {
+			if (array_key_exists('default', $values) && !($values['only_fill_if_present'] ?? false)) {
 				$this->parameters[$key] = $values['default'];
 			}
 			
@@ -265,5 +265,3 @@ class CmdParameterReader {
 		
 	}
 }
-
-?>

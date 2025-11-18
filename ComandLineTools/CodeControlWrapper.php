@@ -18,11 +18,16 @@ class CodeControlWrapper {
 	/* --------------------
 	 * Constructor
 	 */
-	function __construct()  {
+	public function __construct()  {
 		$this->io = new CmdIO();
 	}
+
+    protected function shell($command): string
+    {
+        return trim(shell_exec($command));
+    }
 	
-	function execute($command, $hideCommand = false) {
+	protected function execute($command, $hideCommand = false) {
         if (!$hideCommand) {
 		    $this->io->out(' | ' . $command);
         }
@@ -30,7 +35,7 @@ class CodeControlWrapper {
 		return $retval;
 	}
 	
-	function addComment($message){
+	protected function addComment($message){
 		$time = new DateTime();
 		$this->io->out("\n> Adding comment to " . $this->emph_config['url'] . " at " . $time->format('Y-m-d H:i:s'));
 		
@@ -41,57 +46,63 @@ class CodeControlWrapper {
 		// d($command);
 		$this->execute($command);
 	}
-	
-	
-	function status(){
-		throw new Exception('Not Implemented');
+
+
+    public function status(){
+		throw new \RuntimeException('Not Implemented');
 	}
-	
-	function update(){
-		throw new Exception('Not Implemented');
+
+    public function update(){
+		throw new \RuntimeException('Not Implemented');
 	}
-	
-	function remove($files){
-		throw new Exception('Not Implemented');
+
+    public function remove($files){
+		throw new \RuntimeException('Not Implemented');
 	}
-	
-	function merge($branch){
-		throw new Exception('Not Implemented');
+
+    public function merge($branch){
+		throw new \RuntimeException('Not Implemented');
 	}
-	
-	function diff(){
-		throw new Exception('Not Implemented');
+
+    public function mergeRequest(string $targetBranch) : void
+    {
+        throw new \RuntimeException('Not Implemented');
+    }
+
+    public function diff(){
+		throw new \RuntimeException('Not Implemented');
 	}
 	
 	/**
 	 *
 	 * @param Array $sources - the source repositorys used for checkout
 	 */
-	function checkout($sources, $branch) {
-		throw new Exception('Not Implemented');
+    public function checkout($sources, $branch) {
+		throw new \RuntimeException('Not Implemented');
 	}
-	
-	function feature($name) {
-		throw new Exception('Not Implemented');
+
+    public function feature($name) {
+		throw new \RuntimeException('Not Implemented');
 	}
-	
-	function release($ident, $message) {
-		throw new Exception('Not Implemented');
+
+    public function release($ident, $message) {
+		throw new \RuntimeException('Not Implemented');
 	}
-	
-	function add($files){
-		throw new Exception('Not Implemented');
+
+    public function add($files){
+		throw new \RuntimeException('Not Implemented');
 	}
-	
-	function log($args) {
-		throw new Exception('Not Implemented');
+
+    public function log($args) {
+		throw new \RuntimeException('Not Implemented');
 	}
 	
 	function version() {
-		throw new Exception('Not Implemented');
+		throw new \RuntimeException('Not Implemented');
 	}
 	
-	function commit($message, $addAll, $files = array()){
+	public function commit($message, $addAll, $files = array()): void
+    {
 		if ($message) {
 			$this->addComment($message);
 		} else {
