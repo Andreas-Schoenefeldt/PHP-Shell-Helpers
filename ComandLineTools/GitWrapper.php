@@ -149,7 +149,6 @@ class GitWrapper extends CodeControlWrapper {
 
         switch ($systen) {
             case 'github.com':
-
                 if ($this->io->confirm("Create a pull request from $currentBranch to $targetBranch?")) {
                     $res = $this->shell("gh pr create --base $targetBranch --head $currentBranch --title \"$name\" --body=\"\"");
 
@@ -158,6 +157,28 @@ class GitWrapper extends CodeControlWrapper {
                     } else {
                         $this->io->out($res);
                     }
+                }
+                break;
+            case 'bitbucket.org':
+                $remoteUrl = $this->shell('git remote get-url origin');
+
+                // Parse Bitbucket workspace and repo slug
+                // SSH format: git@bitbucket.org:workspace/repo.git
+                // HTTPS format: https://bitbucket.org/workspace/repo.git
+                if (preg_match('/bitbucket\.org[\/:]([^\/]+)\/([^\/\s]+?)(\.git)?$/', $remoteUrl, $matches)) {
+                    $workspace = $matches[1];
+                    $repoSlug = $matches[2];
+
+                    // Bitbucket MR URL format
+                    $mrUrl = "https://bitbucket.org/$workspace/$repoSlug/pull-requests/new?source=$currentBranch&dest=$targetBranch";
+
+                    $this->io->out("Merge request URL for $currentBranch -> $targetBranch:");
+                    $this->io->out($mrUrl);
+
+                    // Optionally open in browser (uncomment if desired)
+                    // $this->shell("open '$mrUrl'");
+                } else {
+                    $this->io->out("Could not parse Bitbucket repository URL: $remoteUrl");
                 }
                 break;
             default:
