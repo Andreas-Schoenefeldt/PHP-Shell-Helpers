@@ -153,7 +153,7 @@ class GitWrapper extends CodeControlWrapper {
                     $res = $this->shell("gh pr create --base $targetBranch --head $currentBranch --title \"$name\" --body=\"\"");
 
                     if (str_starts_with($res, 'http')) {
-                        $this->io->out("Pull request created successfully: $res/files");
+                        $this->io->out("Pull request created successfully: $res/files?diff=split&w=1");
                     } else {
                         $this->io->out($res);
                     }
