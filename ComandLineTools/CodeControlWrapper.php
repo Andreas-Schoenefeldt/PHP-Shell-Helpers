@@ -22,6 +22,12 @@ class CodeControlWrapper {
 		$this->io = new CmdIO();
 	}
 
+    public function sanitizeMessage($message)
+    {
+        // fixing too common typos..
+        return str_replace('teh', 'the', trim($message));
+    }
+
     protected function shell($command): string
     {
         return trim(shell_exec($command));

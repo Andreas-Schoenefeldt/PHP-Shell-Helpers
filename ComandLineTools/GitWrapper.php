@@ -38,6 +38,8 @@ class GitWrapper extends CodeControlWrapper {
 			} else {
 				$this->add(array());
 			}
+
+            $message = parent::sanitizeMessage($message);
 		
 			$command = 'git commit -m "' . $message . '"';
 		
@@ -157,6 +159,29 @@ class GitWrapper extends CodeControlWrapper {
                     } else {
                         $this->io->out($res);
                     }
+                }
+                break;
+            case 'gitea.flowconcept.de':
+                $remoteUrl = $this->shell('git remote get-url origin');
+
+                if (preg_match('/' . str_replace('.', '\\.', $systen) . '[\/:]([^\/]+)\/([^\/\s]+?)(\.git)?$/', $remoteUrl, $matches)) {
+                    $workspace = $matches[1];
+                    $repoSlug = $matches[2];
+
+                    if ($this->io->confirm("Create a pull request from $currentBranch to $targetBranch?")) {
+                        $res = $this->shell(" tea pulls create -r $workspace/$repoSlug --base=$targetBranch --head=$currentBranch --title=\"$name\"");
+
+                        $lines = preg_split('/\r\n|\r|\n/', $res);
+                        $last = $lines ? rtrim(end($lines)) : '';
+
+                        if (str_starts_with($last, 'http')) {
+                            $this->io->out("Pull request created successfully: $last/files?style=unified&whitespace=ignore-all&show-outdated=false");
+                        } else {
+                            $this->io->out($res);
+                        }
+                    }
+                } else {
+                    $this->io->out("Could not parse gitea repository URL: $remoteUrl");
                 }
                 break;
             case 'bitbucket.org':
