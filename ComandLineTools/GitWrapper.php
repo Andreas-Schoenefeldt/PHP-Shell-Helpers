@@ -195,7 +195,7 @@ class GitWrapper extends CodeControlWrapper {
                     $repoSlug = $matches[2];
 
                     // Bitbucket MR URL format
-                    $mrUrl = "https://bitbucket.org/$workspace/$repoSlug/pull-requests/new?source=$currentBranch&dest=$targetBranch";
+                    $mrUrl = "https://bitbucket.org/$workspace/$repoSlug/pull-requests/new?source=$currentBranch&dest=$targetBranch&title=" . urlencode($name);
 
                     $this->io->out("Merge request URL for $currentBranch -> $targetBranch:");
                     $this->io->out($mrUrl);
