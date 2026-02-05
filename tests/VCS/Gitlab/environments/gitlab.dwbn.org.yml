@@ -1,0 +1,6 @@
+name: gitlab.dwbn.org
+variables:
+  - name: HOST
+    value: https://gitlab.dwbn.org/
+  - secret: true
+    name: GITLAB_TOKEN

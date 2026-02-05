@@ -156,7 +156,7 @@ class GitWrapper extends CodeControlWrapper {
 
         $currentBranch = $this->shell('git branch --show-current');
         $parts = explode('/', $currentBranch);
-        $name = array_pop($parts);
+        $name = str_replace('-', '', array_pop($parts));
         $systen = $this->getRemoteHost();
 
         switch ($systen) {
@@ -214,6 +214,24 @@ class GitWrapper extends CodeControlWrapper {
                     // $this->shell("open '$mrUrl'");
                 } else {
                     $this->io->out("Could not parse Bitbucket repository URL: $remoteUrl");
+                }
+                break;
+            case 'gitlab.dwbn.org':
+                if ($this->io->confirm("Create a merge request from $currentBranch to $targetBranch?")) {
+
+                    $command = "glab mr create --target-branch $targetBranch --source-branch $currentBranch --title \"$name\" --fill -y --remove-source-branch";
+
+                    $this->io->out("Executing: $command");
+                    $res = $this->shell($command);
+
+                    $lines = preg_split('/\r\n|\r|\n/', $res);
+                    $last = $lines ? rtrim(end($lines)) : '';
+
+                    if (str_starts_with($last, 'http')) {
+                        $this->io->out("Merge request created successfully: $last");
+                    } else {
+                        $this->io->out($res);
+                    }
                 }
                 break;
             default:
