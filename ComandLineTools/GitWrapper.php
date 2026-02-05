@@ -142,7 +142,17 @@ class GitWrapper extends CodeControlWrapper {
         return $remoteUrl; // Return as-is if no pattern matches
     }
 
-    public function mergeRequest(string $targetBranch): void {
+    public function mergeRequest(string|bool $targetBranch = null): void {
+
+        if (is_bool($targetBranch) || !$targetBranch) {
+            $targetBranch = $this->shell('git config init.defaultBranch');
+            if (!$targetBranch) {
+                $this->io->error('Could not determine the default branch. Please set it with `git config --local init.defaultBranch <branch>` for this repository.');
+                return;
+            }
+
+            $this->io->out('The target "'. $targetBranch . '" branch was taken from the git configuration. Change it with `git config --local init.defaultBranch <branch>` for this repository.');
+        }
 
         $currentBranch = $this->shell('git branch --show-current');
         $parts = explode('/', $currentBranch);

@@ -70,7 +70,7 @@ class CodeControlWrapper {
 		throw new \RuntimeException('Not Implemented');
 	}
 
-    public function mergeRequest(string $targetBranch) : void
+    public function mergeRequest(string|bool $targetBranch = null) : void
     {
         throw new \RuntimeException('Not Implemented');
     }
