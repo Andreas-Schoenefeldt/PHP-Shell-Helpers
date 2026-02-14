@@ -156,7 +156,7 @@ class GitWrapper extends CodeControlWrapper {
 
         $currentBranch = $this->shell('git branch --show-current');
         $parts = explode('/', $currentBranch);
-        $name = str_replace('-', '', array_pop($parts));
+        $name = str_replace(['-', '_'], ' ', array_pop($parts));
         $systen = $this->getRemoteHost();
 
         switch ($systen) {
