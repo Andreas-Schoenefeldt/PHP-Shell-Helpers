@@ -152,6 +152,7 @@ class GitWrapper extends CodeControlWrapper {
             }
 
             $this->io->out('The target "'. $targetBranch . '" branch was taken from the git configuration. Change it with `git config --local init.defaultBranch <branch>` for this repository.');
+            $this->io->out('');
         }
 
         $currentBranch = $this->shell('git branch --show-current');
@@ -219,7 +220,7 @@ class GitWrapper extends CodeControlWrapper {
             case 'gitlab.dwbn.org':
                 if ($this->io->confirm("Create a merge request from $currentBranch to $targetBranch?")) {
 
-                    $command = "glab mr create --target-branch $targetBranch --source-branch $currentBranch --title \"$name\" --fill -y --remove-source-branch";
+                    $command = "glab mr create --target-branch $targetBranch --source-branch $currentBranch --title=\"#$name\" -y --description=\"$(cat $(git rev-parse --show-toplevel)/.gitlab/merge_request_templates/default.md)\" --remove-source-branch";
 
                     $this->io->out("Executing: $command");
                     $res = $this->shell($command);
