@@ -142,7 +142,7 @@ class GitWrapper extends CodeControlWrapper {
         return $remoteUrl; // Return as-is if no pattern matches
     }
 
-    public function mergeRequest(string|bool $targetBranch = null): void {
+    public function mergeRequest(string|bool|null $targetBranch = null): void {
 
         if (is_bool($targetBranch) || !$targetBranch) {
             $targetBranch = $this->shell('git config init.defaultBranch');

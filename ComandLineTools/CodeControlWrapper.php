@@ -12,7 +12,7 @@ class CodeControlWrapper {
     protected CmdIO $io;
 	protected array $emph_config = [
 		'token' => 'andreas',
-		'url' => 'https://time2.store.emphasize.de/?topic=[token]&u=githook'
+		'url' => 'https://time2.emphasize.de/storage/?topic=[token]&u=githook'
     ];
 	
 	/* --------------------
@@ -46,11 +46,18 @@ class CodeControlWrapper {
 		$this->io->out("\n> Adding comment to " . $this->emph_config['url'] . " at " . $time->format('Y-m-d H:i:s'));
 		
 		$url = str_replace('[token]', $this->emph_config['token'], $this->emph_config['url']);
-		
-		$data = [["s" => $time->getTimestamp() * 1000, "i" => $message]];
-		$command = 'curl -d \'' . json_encode($data) . '\' ' . '\'' . $url . '\'';
-		// d($command);
-		$this->execute($command);
+
+        $data = [["s" => $time->getTimestamp() * 1000, "i" => $message]];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($ch);
+
+        var_dump($response);
+
+        curl_close($ch);
 	}
 
 
@@ -70,7 +77,7 @@ class CodeControlWrapper {
 		throw new \RuntimeException('Not Implemented');
 	}
 
-    public function mergeRequest(string|bool $targetBranch = null) : void
+    public function mergeRequest(string|bool|null $targetBranch = null) : void
     {
         throw new \RuntimeException('Not Implemented');
     }
