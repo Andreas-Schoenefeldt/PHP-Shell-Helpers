@@ -45,7 +45,7 @@ class CodeControlWrapper {
 		$time = new DateTime();
         $data = json_encode([["s" => $time->getTimestamp() * 1000, "i" => $message]], JSON_THROW_ON_ERROR);
 		$this->io->out("\n> Adding comment to " . $this->emph_config['url'] . " at " . $time->format('Y-m-d H:i:s'));
-		$this->io->out("\n> $data");
+		$this->io->out("> $data");
 
 		$url = str_replace('[token]', $this->emph_config['token'], $this->emph_config['url']);
 
@@ -58,7 +58,7 @@ class CodeControlWrapper {
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
         if ($status < 200 || $status >= 300) {
-            $this->io->out("\n> ERROR $status");
+            $this->io->out("> ERROR $status");
         }
 
         curl_close($ch);
