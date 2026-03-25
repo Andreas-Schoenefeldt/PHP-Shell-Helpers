@@ -53,9 +53,11 @@ class CodeControlWrapper {
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
+        curl_exec($ch);
 
-        var_dump($response);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        var_dump($status);
 
         curl_close($ch);
 	}
