@@ -60,8 +60,6 @@ class CodeControlWrapper {
         if ($status < 200 || $status >= 300) {
             $this->io->out("> ERROR $status");
         }
-
-        curl_close($ch);
 	}
 
 
