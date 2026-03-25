@@ -43,21 +43,23 @@ class CodeControlWrapper {
 	
 	protected function addComment($message){
 		$time = new DateTime();
+        $data = json_encode([["s" => $time->getTimestamp() * 1000, "i" => $message]], JSON_THROW_ON_ERROR);
 		$this->io->out("\n> Adding comment to " . $this->emph_config['url'] . " at " . $time->format('Y-m-d H:i:s'));
-		
-		$url = str_replace('[token]', $this->emph_config['token'], $this->emph_config['url']);
+		$this->io->out("\n> $data");
 
-        $data = [["s" => $time->getTimestamp() * 1000, "i" => $message]];
+		$url = str_replace('[token]', $this->emph_config['token'], $this->emph_config['url']);
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_exec($ch);
 
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        var_dump($status);
+        if ($status < 200 || $status >= 300) {
+            $this->io->out("\n> ERROR $status");
+        }
 
         curl_close($ch);
 	}
