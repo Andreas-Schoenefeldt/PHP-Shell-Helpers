@@ -1,0 +1,8 @@
+name: DESTATIS
+variables:
+  - name: HOST
+    value: https://c32prj.cloud.stba.in.bund.de
+  - secret: true
+    name: USER
+  - secret: true
+    name: PASSWORD

@@ -286,24 +286,41 @@ class GitWrapper extends CodeControlWrapper {
                         $username = trim($userMatch[1] ?? '');
                         $password = trim($passMatch[1] ?? '');
 
-                        // now get the template
-                        $ch = curl_init();
-                        curl_setopt_array($ch, [
-                            CURLOPT_URL => "https://$host/scm/api/v2/pull-requests/$namespace/$repoName/template",
-                            CURLOPT_RETURNTRANSFER => true,
-                            CURLOPT_USERPWD => "$username:$password",
-                            CURLOPT_SSL_VERIFYPEER => false,
-                            CURLOPT_SSL_VERIFYHOST => false,
-                            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-                        ]);
-                        $response = curl_exec($ch);
-                        $curlError = curl_error($ch);
+                        $makeApiRequest = function ($path, $method = 'GET', ?array $data = null, array $headers = []) use ($host, $username, $password) {
+                            $curlOptions = [
+                                CURLOPT_URL => "https://$host$path",
+                                CURLOPT_RETURNTRANSFER => true,
+                                CURLOPT_USERPWD => "$username:$password",
+                                CURLOPT_SSL_VERIFYPEER => false,
+                                CURLOPT_SSL_VERIFYHOST => false,
+                                CURLOPT_HTTPHEADER => array_merge(['Content-Type: application/json'], $headers),
+                            ];
+                        
+                            if ($method == 'POST') {
+                                $curlOptions[CURLOPT_POST] = true;
+                                $curlOptions[CURLOPT_POSTFIELDS] = json_encode($data);
+                            }
 
-                        if ($curlError) {
-                            $this->io->out("Could not load MR template: $curlError");
-                        } else {
-                            $data = json_decode($response, true);
+                            $ch = curl_init();
+                            curl_setopt_array($ch, $curlOptions);
 
+                            $response = curl_exec($ch);
+                            $curlError = curl_error($ch);
+
+                            $data = null;
+
+                            if ($curlError) {
+                                $this->io->out("Could not load $path: $curlError");
+                            } else if ($response) {
+                                $data = json_decode($response, true);
+                            }
+
+                            return $data;
+                        };
+
+                        $data = $makeApiRequest("/scm/api/v2/pull-requests/$namespace/$repoName/template");
+
+                        if ($data) {
                             $request = [
                                 "title" => $name,
                                 "source" => $currentBranch,
@@ -312,23 +329,22 @@ class GitWrapper extends CodeControlWrapper {
                                 "shouldDeleteSourceBranch" => true
                             ];
 
-                            $ch = curl_init();
-                            curl_setopt_array($ch, [
-                                CURLOPT_URL => "https://$host/scm/api/v2/pull-requests/$namespace/$repoName",
-                                CURLOPT_RETURNTRANSFER => true,
-                                CURLOPT_POST => true,
-                                CURLOPT_POSTFIELDS => json_encode($request),
-                                CURLOPT_USERPWD => "$username:$password",
-                                CURLOPT_HTTPHEADER => ['Content-Type: application/vnd.scmm-pullRequest+json;v=2'],
-                                CURLOPT_SSL_VERIFYPEER => false,
-                                CURLOPT_SSL_VERIFYHOST => false,
-                            ]);
-                            $response = curl_exec($ch);
-                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                            $curlError = curl_error($ch);
+                            $makeApiRequest("/scm/api/v2/pull-requests/$namespace/$repoName", 'POST', $request, ['Content-Type: application/vnd.scmm-pullRequest+json;v=2']);
 
-                            echo "HTTP: $httpCode\n";
-                            echo "Response: $response\n";
+                            // load the available merge requests
+                            $availablePRs = $makeApiRequest("/scm/api/v2/pull-requests/$namespace/$repoName");
+
+                            if ($availablePRs) {
+                                $pr = array_find($availablePRs['_embedded']['pullRequests'], function ($pRequest) use ($currentBranch, $targetBranch) {
+                                    return $pRequest['source'] == $currentBranch && $pRequest['target'] == $targetBranch;
+                                });
+
+                                if ($pr) {
+                                    $this->io->out("Pull request created successfully: https://$host/scm/repo/$namespace/$repoName/pull-request/{$pr['id']}/diff/");
+                                } else {
+                                    $this->io->out("Pull request could not be created");
+                                }
+                            }
                         }
                     }
                 } else {

@@ -1,0 +1,28 @@
+info:
+  name: Create Pull Request
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{HOST}}/scm/api/v2/pull-requests/NPPS_EPI-DL/EPI-DL"
+  headers:
+    - name: Content-Type
+      value: application/vnd.scmm-pullRequest+json;v=2
+  body:
+    type: json
+    data: |-
+      {
+          "title": "My PR title",
+          "source": "feature/NPPSEP-270-neues_basisjahr_messzahl_alte_basis_bearbeiten",
+          "target": "develop",
+          "description": "Optional description",
+          "shouldDeleteSourceBranch": true
+        }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
