@@ -8,6 +8,12 @@ require_once(str_replace('//','/',dirname(__FILE__).'/') .'CodeControlWrapper.ph
  * A function to Wrapp a the git CodeControl
  * ----------------------------------------------------------------------- */
 class GitWrapper extends CodeControlWrapper {
+
+    public const SYSTEM_SCM = 'scm'; // SCM-Manager - allows pull requests only with addiotnal plugins
+    public const SYSTEM_GITHUB = 'github';
+    public const SYSTEM_GITLAB = 'gitlab';
+    public const SYSTEM_GITEA = 'gitea';
+    public const SYSTEM_BITBUCKET = 'bitbucket';
 	
 	public function status($short = false, $branch = false){
 		if ($branch) $this->execute('git branch'); // show the brnaches
@@ -125,8 +131,33 @@ class GitWrapper extends CodeControlWrapper {
 		$this->execute('git rm -f -r ' . implode(' ', $files));
 	}
 
-    protected function getRemoteHost(): string {
+    protected function getSystem(): string {
         $remoteUrl = $this->shell('git remote get-url origin');
+        $host = $this->getRemoteHost($remoteUrl);
+
+        switch ($host) {
+            case 'github.com':
+                return self::SYSTEM_GITHUB;
+            case 'bitbucket.org':
+                return self::SYSTEM_BITBUCKET;        
+        }
+
+        // we could not identify it jet, do some educated guesses
+
+        if (str_starts_with($host, 'gitea.')) {
+            return self::SYSTEM_GITEA;
+        } else if (str_starts_with($host, 'gitlab.')) {
+            return self::SYSTEM_GITLAB;
+        } else if (str_contains($remoteUrl, '/scm/')) {
+            return self::SYSTEM_SCM;
+        } 
+
+        // the defauld, just return the host
+        return $host;
+    }
+
+    protected function getRemoteHost($url = null): string {
+        $remoteUrl = $url ?: $this->shell('git remote get-url origin');
 
         // Parse the host from the URL
         // Handle SSH format: git@github.com:user/repo.git
@@ -158,11 +189,11 @@ class GitWrapper extends CodeControlWrapper {
         $currentBranch = $this->shell('git branch --show-current');
         $parts = explode('/', $currentBranch);
         $name = str_replace(['-', '_'], ' ', array_pop($parts));
-        $systen = $this->getRemoteHost();
+        $systen = $this->getSystem();
 
         switch ($systen) {
-            case 'github.com':
-                if ($this->io->confirm("Create a pull request from $currentBranch to $targetBranch?")) {
+            case self::SYSTEM_GITHUB:
+                if ($this->io->confirm("Create a pull request from $currentBranch -> $targetBranch?")) {
                     $res = $this->shell("gh pr create --base $targetBranch --head $currentBranch --title \"$name\" --body=\"\"");
 
                     if (str_starts_with($res, 'http')) {
@@ -172,14 +203,14 @@ class GitWrapper extends CodeControlWrapper {
                     }
                 }
                 break;
-            case 'gitea.flowconcept.de':
+            case self::SYSTEM_GITEA:
                 $remoteUrl = $this->shell('git remote get-url origin');
 
                 if (preg_match('/' . str_replace('.', '\\.', $systen) . '[\/:]([^\/]+)\/([^\/\s]+?)(\.git)?$/', $remoteUrl, $matches)) {
                     $workspace = $matches[1];
                     $repoSlug = $matches[2];
 
-                    if ($this->io->confirm("Create a pull request from $currentBranch to $targetBranch?")) {
+                    if ($this->io->confirm("Create a pull request from $currentBranch -> $targetBranch?")) {
                         $res = $this->shell(" tea pulls create -r $workspace/$repoSlug --base=$targetBranch --head=$currentBranch --title=\"$name\"");
 
                         $lines = preg_split('/\r\n|\r|\n/', $res);
@@ -195,7 +226,7 @@ class GitWrapper extends CodeControlWrapper {
                     $this->io->out("Could not parse gitea repository URL: $remoteUrl");
                 }
                 break;
-            case 'bitbucket.org':
+            case self::SYSTEM_BITBUCKET:
                 $remoteUrl = $this->shell('git remote get-url origin');
 
                 // Parse Bitbucket workspace and repo slug
@@ -217,8 +248,8 @@ class GitWrapper extends CodeControlWrapper {
                     $this->io->out("Could not parse Bitbucket repository URL: $remoteUrl");
                 }
                 break;
-            case 'gitlab.dwbn.org':
-                if ($this->io->confirm("Create a merge request from $currentBranch to $targetBranch?")) {
+            case self::SYSTEM_GITLAB:
+                if ($this->io->confirm("Create a merge request from $currentBranch -> $targetBranch?")) {
 
                     $command = "glab mr create --target-branch $targetBranch --source-branch $currentBranch --title=\"#$name\" -y --description=\"$(cat $(git rev-parse --show-toplevel)/.gitlab/merge_request_templates/default.md)\" --remove-source-branch";
 
@@ -233,6 +264,75 @@ class GitWrapper extends CodeControlWrapper {
                     } else {
                         $this->io->out($res);
                     }
+                }
+                break;
+            case self::SYSTEM_SCM:
+                $remoteUrl = $this->shell('git remote get-url origin');
+
+                if (preg_match('/\/scm\/repo\/([^\/]+)\/([^\/\s]+?)(\.git)?$/', $remoteUrl, $matches)) {
+                    $namespace = $matches[1];
+                    $repoName = $matches[2];
+
+                    if ($this->io->confirm("Create a merge request from $currentBranch -> $targetBranch?")) {
+
+                        $host = $this->getRemoteHost($remoteUrl);
+
+                        $this->io->out("Retrieving credentials for $host");
+                        $output = $this->shell("powershell -Command \"\\\"protocol=https`nhost=$host`n`n\\\" | git credential fill\"");
+
+                        preg_match('/^username=(.+)$/m', $output, $userMatch);
+                        preg_match('/^password=(.+)$/m', $output, $passMatch);
+
+                        $username = trim($userMatch[1] ?? '');
+                        $password = trim($passMatch[1] ?? '');
+
+                        // now get the template
+                        $ch = curl_init();
+                        curl_setopt_array($ch, [
+                            CURLOPT_URL => "https://$host/scm/api/v2/pull-requests/$namespace/$repoName/template",
+                            CURLOPT_RETURNTRANSFER => true,
+                            CURLOPT_USERPWD => "$username:$password",
+                            CURLOPT_SSL_VERIFYPEER => false,
+                            CURLOPT_SSL_VERIFYHOST => false,
+                            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                        ]);
+                        $response = curl_exec($ch);
+                        $curlError = curl_error($ch);
+
+                        if ($curlError) {
+                            $this->io->out("Could not load MR template: $curlError");
+                        } else {
+                            $data = json_decode($response, true);
+
+                            $request = [
+                                "title" => $name,
+                                "source" => $currentBranch,
+                                "target" => $targetBranch,
+                                "reviewers" => $data['defaultReviewers'] ?? [],
+                                "shouldDeleteSourceBranch" => true
+                            ];
+
+                            $ch = curl_init();
+                            curl_setopt_array($ch, [
+                                CURLOPT_URL => "https://$host/scm/api/v2/pull-requests/$namespace/$repoName",
+                                CURLOPT_RETURNTRANSFER => true,
+                                CURLOPT_POST => true,
+                                CURLOPT_POSTFIELDS => json_encode($request),
+                                CURLOPT_USERPWD => "$username:$password",
+                                CURLOPT_HTTPHEADER => ['Content-Type: application/vnd.scmm-pullRequest+json;v=2'],
+                                CURLOPT_SSL_VERIFYPEER => false,
+                                CURLOPT_SSL_VERIFYHOST => false,
+                            ]);
+                            $response = curl_exec($ch);
+                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                            $curlError = curl_error($ch);
+
+                            echo "HTTP: $httpCode\n";
+                            echo "Response: $response\n";
+                        }
+                    }
+                } else {
+                    $this->io->out("Could not parse SCM-Manager repository URL: $remoteUrl");
                 }
                 break;
             default:

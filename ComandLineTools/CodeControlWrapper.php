@@ -30,7 +30,7 @@ class CodeControlWrapper {
 
     protected function shell($command): string
     {
-        return trim(shell_exec($command));
+        return trim(shell_exec($command) ?? '');
     }
 	
 	protected function execute($command, $hideCommand = false) {
