@@ -287,13 +287,17 @@ class GitWrapper extends CodeControlWrapper {
                         $password = trim($passMatch[1] ?? '');
 
                         $makeApiRequest = function ($path, $method = 'GET', ?array $data = null, array $headers = []) use ($host, $username, $password) {
+                        
+                            $finalHeaders = array_replace(['Content-Type: application/json'], $headers);
+                            $finalUrl = "https://$host$path";
+                           
                             $curlOptions = [
-                                CURLOPT_URL => "https://$host$path",
+                                CURLOPT_URL => $finalUrl,
                                 CURLOPT_RETURNTRANSFER => true,
                                 CURLOPT_USERPWD => "$username:$password",
                                 CURLOPT_SSL_VERIFYPEER => false,
                                 CURLOPT_SSL_VERIFYHOST => false,
-                                CURLOPT_HTTPHEADER => array_merge(['Content-Type: application/json'], $headers),
+                                CURLOPT_HTTPHEADER => $finalHeaders,
                             ];
                         
                             if ($method == 'POST') {
@@ -313,6 +317,12 @@ class GitWrapper extends CodeControlWrapper {
                                 $this->io->out("Could not load $path: $curlError");
                             } else if ($response) {
                                 $data = json_decode($response, true);
+
+                                if (array_key_exists('errorCode', $data)) {
+                                    $this->io->out("Received error {$data['errorCode']}: {$data['message']}");
+                                    $data = null;
+                                }
+
                             }
 
                             return $data;
@@ -335,9 +345,7 @@ class GitWrapper extends CodeControlWrapper {
                             $availablePRs = $makeApiRequest("/scm/api/v2/pull-requests/$namespace/$repoName");
 
                             if ($availablePRs) {
-                                $pr = array_find($availablePRs['_embedded']['pullRequests'], function ($pRequest) use ($currentBranch, $targetBranch) {
-                                    return $pRequest['source'] == $currentBranch && $pRequest['target'] == $targetBranch;
-                                });
+                                $pr = array_values(array_filter($availablePRs['_embedded']['pullRequests'], fn($p) => $p['source'] == $currentBranch && $p['target'] == $targetBranch))[0] ?? null;
 
                                 if ($pr) {
                                     $this->io->out("Pull request created successfully: https://$host/scm/repo/$namespace/$repoName/pull-request/{$pr['id']}/diff/");
