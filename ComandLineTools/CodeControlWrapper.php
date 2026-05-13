@@ -11,7 +11,7 @@ class CodeControlWrapper {
 
   protected CmdIO $io;
 	protected array $emph_config = [
-		'token' => 'UNDEFINED',
+		'token' => '',
 		'url' => 'https://time2.emphasize.de/storage/?topic=[token]&u=githook'
   ];
 	
