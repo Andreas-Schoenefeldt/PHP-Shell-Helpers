@@ -61,13 +61,15 @@ class CodeControlWrapper {
 		$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 		if ($status < 200 || $status >= 300) {
-				$error = curl_error($ch);
-				$this->io->out("> ERROR $status: $response ($error)");
-				$this->io->out(">");
-				$this->io->out("> Please add the message manually:");
-				$this->io->out("> ----------------------------------------------");
-				$this->io->out("> $message");
-				$this->io->out("> ----------------------------------------------");
+			$error = curl_error($ch);
+			$this->io->out("> ERROR $status: $response ($error)");
+			$this->io->out(">");
+			$this->io->out("> Please add the message manually:");
+			$this->io->out("> ----------------------------------------------");
+			$this->io->out("> $message");
+			$this->io->out("> ----------------------------------------------");
+		} else {
+			$this->io->out("> OK $status: $response");
 		}
 	}
 
