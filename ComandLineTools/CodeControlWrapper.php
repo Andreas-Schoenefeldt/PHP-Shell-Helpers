@@ -44,28 +44,31 @@ class CodeControlWrapper {
 	
 	protected function addComment($message){
 		$time = new DateTime();
-        $data = json_encode([["s" => $time->getTimestamp() * 1000, "i" => $message]], JSON_THROW_ON_ERROR);
+    $data = json_encode([["s" => $time->getTimestamp() * 1000, "i" => $message]], JSON_THROW_ON_ERROR);
 		$this->io->out("\n> Adding comment to " . $this->emph_config['url'] . " at " . $time->format('Y-m-d H:i:s'));
 		$this->io->out("> $data");
 
 		$url = str_replace('[token]', $this->emph_config['token'], $this->emph_config['url']);
 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+		$response = curl_exec($ch);
 
-        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        if ($status < 200 || $status >= 300) {
-			$error = curl_error($ch);
-            $this->io->out("> ERROR $status: $response ($error)");
-						$this->io->out("> Please add the message manually");
-						$this->io->out("> ----------------------------------------------");
-						$this->io->out("> $message");
-						$this->io->out("> ----------------------------------------------");
-        }
+		if ($status < 200 || $status >= 300) {
+				$error = curl_error($ch);
+				$this->io->out("> ERROR $status: $response ($error)");
+				$this->io->out(">");
+				$this->io->out("> Please add the message manually:");
+				$this->io->out("> ----------------------------------------------");
+				$this->io->out("> $message");
+				$this->io->out("> ----------------------------------------------");
+		}
 	}
 
 
