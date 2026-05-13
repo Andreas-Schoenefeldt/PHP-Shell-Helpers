@@ -45,10 +45,11 @@ class CodeControlWrapper {
 	protected function addComment($message){
 		$time = new DateTime();
     $data = json_encode([["s" => $time->getTimestamp() * 1000, "i" => $message]], JSON_THROW_ON_ERROR);
-		$this->io->out("\n> Adding comment to " . $this->emph_config['url'] . " at " . $time->format('Y-m-d H:i:s'));
-		$this->io->out("> $data");
 
 		$url = str_replace('[token]', $this->emph_config['token'], $this->emph_config['url']);
+
+		$this->io->out("\n> Adding comment to " . $url . " at " . $time->format('Y-m-d H:i:s'));
+		$this->io->out("> $data");
 
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_POST, true);
