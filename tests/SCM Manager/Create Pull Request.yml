@@ -14,10 +14,11 @@ http:
     data: |-
       {
           "title": "My PR title",
-          "source": "feature/NPPSEP-270-neues_basisjahr_messzahl_alte_basis_bearbeiten",
+          "source": "feature/NPPSEP-269_neues_basisjahr_umsteiger_importieren",
           "target": "develop",
           "description": "Optional description",
-          "shouldDeleteSourceBranch": true
+          "shouldDeleteSourceBranch": true,
+          "reviewers": [{"id": "boehm-n"}]
         }
   auth: inherit
 

@@ -335,7 +335,7 @@ class GitWrapper extends CodeControlWrapper {
                                 "title" => $name,
                                 "source" => $currentBranch,
                                 "target" => $targetBranch,
-                                "reviewers" => $data['defaultReviewers'] ?? [],
+                                // "reviewers" => array_map(function ($r) { return ['id' => $r['id']];}, $data['defaultReviewers'] ?? []),
                                 "shouldDeleteSourceBranch" => true
                             ];
 

@@ -9,29 +9,30 @@ require_once(str_replace('//','/', __DIR__ .'/') .'../CmdIO.php');
  * ----------------------------------------------------------------------- */
 class CodeControlWrapper {
 
-    protected CmdIO $io;
+  protected CmdIO $io;
 	protected array $emph_config = [
-		'token' => 'andreas',
+		'token' => 'UNDEFINED',
 		'url' => 'https://time2.emphasize.de/storage/?topic=[token]&u=githook'
-    ];
+  ];
 	
 	/* --------------------
 	 * Constructor
 	 */
 	public function __construct()  {
 		$this->io = new CmdIO();
+		$this->emph_config['token'] = getenv('TIME2_EMPHASIZE_TOKEN');
 	}
 
-    public function sanitizeMessage($message)
-    {
-        // fixing too common typos..
-        return str_replace('teh', 'the', trim($message));
-    }
+	public function sanitizeMessage($message)
+	{
+			// fixing too common typos..
+			return str_replace('teh', 'the', trim($message));
+	}
 
-    protected function shell($command): string
-    {
-        return trim(shell_exec($command) ?? '');
-    }
+	protected function shell($command): string
+	{
+			return trim(shell_exec($command) ?? '');
+	}
 	
 	protected function execute($command, $hideCommand = false) {
         if (!$hideCommand) {
@@ -53,12 +54,17 @@ class CodeControlWrapper {
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_exec($ch);
+        $response = curl_exec($ch);
 
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
         if ($status < 200 || $status >= 300) {
-            $this->io->out("> ERROR $status");
+			$error = curl_error($ch);
+            $this->io->out("> ERROR $status: $response ($error)");
+						$this->io->out("> Please add the message manually");
+						$this->io->out("> ----------------------------------------------");
+						$this->io->out("> $message");
+						$this->io->out("> ----------------------------------------------");
         }
 	}
 
