@@ -205,8 +205,8 @@ class GitWrapper extends CodeControlWrapper {
                 break;
             case self::SYSTEM_GITEA:
                 $remoteUrl = $this->shell('git remote get-url origin');
-
-                if (preg_match('/' . str_replace('.', '\\.', $systen) . '[\/:]([^\/]+)\/([^\/\s]+?)(\.git)?$/', $remoteUrl, $matches)) {
+                $regex = '/[\/:]([^\/]+)\/([^\/\s]+?)(\.git)?$/';
+                if (preg_match($regex, $remoteUrl, $matches)) {
                     $workspace = $matches[1];
                     $repoSlug = $matches[2];
 
@@ -223,7 +223,7 @@ class GitWrapper extends CodeControlWrapper {
                         }
                     }
                 } else {
-                    $this->io->out("Could not parse gitea repository URL: $remoteUrl");
+                    $this->io->out("Could not parse gitea repository URL: $remoteUrl with $regex");
                 }
                 break;
             case self::SYSTEM_BITBUCKET:
