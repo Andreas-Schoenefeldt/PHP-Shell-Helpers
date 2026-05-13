@@ -21,6 +21,10 @@ class CodeControlWrapper {
 	public function __construct()  {
 		$this->io = new CmdIO();
 		$this->emph_config['token'] = getenv('TIME2_EMPHASIZE_TOKEN');
+
+		if (! $this->emph_config['token']) {
+			throw new RuntimeException('TIME2_EMPHASIZE_TOKEN environment variable is missing.');
+		}
 	}
 
 	public function sanitizeMessage($message)
